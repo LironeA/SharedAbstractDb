@@ -53,7 +53,7 @@ int insert_s(slave s) {
 index get_index_slave() {
     struct index i{};
     i.id = lastIndex++;
-    i.record_size = sizeof(master);
+    i.record_size = SLAVE_SIZE;
     i.exists = 0;
 
     //printf("Index created. Id: %d\n", i.id);
