@@ -17,10 +17,10 @@ struct master {
     string name;
 };
 
-int get_m();
+int get_m(master* m, int id);
 int del_m();
-int update_m();
-int insert_m();
+int update_m(master* m);
+int insert_m(master* m);
 int calc_m();
 int ut_m();
 int save_m(master* m, index i);
