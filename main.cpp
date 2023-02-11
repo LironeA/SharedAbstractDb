@@ -1,3 +1,5 @@
+#pragma once
+
 #include <iostream>
 #include "master.h"
 #include "slave.h"
@@ -20,6 +22,7 @@ int get_master() {
     else {
         cout << "Error occurred during the get operation" << endl;
     }
+    return 0;
 }
 
 int insert_master(){
@@ -33,6 +36,7 @@ int insert_master(){
     else {
         cout << "Error occurred during the insert operation" << endl;
     }
+    return 0;
 }
 
 
@@ -44,42 +48,41 @@ int update_master()
     cin >> m.id;
     cout << "Name:" << endl;
     cin >> m.name;
-    if(update_m(&m) == 0){
+    if(update_m(&m) == 0) {
         cout << "Master updated. Name: " << m.name << "Id: " << m.id << endl;
-    } else{
+    }
+    else {
         cout << "Error occurred during the update operation" << endl;
     }
+
+    return 0;
 }
 
-int delete_master(){
-    struct master m;
+int delete_master() {
     int id;
     cout << "Id:" << endl;
     cin >> id;
-    m.id = id;
 
-    /*if(delete_m(&m) == 1){
+    if(del_m(id) == 0){
         cout << "Master deleted." << endl;
-    } else{
+    }
+    else {
         cout << "Error" << endl;
-    }*/
+    }
+
+    return 0;
 }
 
 int calc_master()
 {
-    struct master m;
-    int id;
-    cout << "Id:" << endl;
-    cin >> id;
-    m.id = id;
-
-    unsupported_operation();
-
-    /*if(calk_m(&m) == 1){
-        cout << "Master deleted." << endl;
-    } else{
+    int result = calc_m();
+    if(calc_m() == -1){
         cout << "Error" << endl;
-    }*/
+        return 1;
+    }
+    cout << "Number of masters: " << result << endl;
+
+    return 0;
 }
 
 int ut_master(){
@@ -107,12 +110,20 @@ int insert_slave(){
     cin >> s.name;
     cout << "MasterID:" << endl;
     cin >> s.m_id;
-    if (insert_s(&s) == 0) {
+    int result_code = insert_s(&s);
+    if(result_code == 1) {
+        cout << "Error occurred during the insert operation" << endl;
+        return 1;
+    }
+    if(result_code == 2) {
+        cout << "Error: Master with this id is not exsist" << endl;
+        return 1;
+    }
+    if (result_code == 0) {
         cout << "Slave created."<< endl <<  "Name: " << s.name << endl << "Id: " << s.id << " Master: " << s.m_id <<  endl;
     }
-    else {
-        cout << "Error occurred during the insert operation" << endl;
-    }
+
+
 }
 
 
@@ -126,10 +137,18 @@ int update_slave()
     cin >> s.name;
     cout << "MasterID:" << endl;
     cin >> s.m_id;
-    if(update_s(&s) == 0){
-        cout << "Slave updated. Name: " << s.name << "Id: " << s.id << " Master: " << s.m_id <<  endl;
-    } else{
+    int result_code = update_s(&s);
+    if(result_code == 1) {
         cout << "Error occurred during the update operation" << endl;
+        return 1;
+    }
+    if(result_code == 2) {
+        cout << "Error: Master with this id is not exsist" << endl;
+        return 1;
+    }
+    if (result_code == 0) {
+        cout << "Slave updated." << endl << "Name: " << s.name << endl << "Id: " << s.id << " Master: " << s.m_id
+             << endl;
     }
 }
 
@@ -175,12 +194,13 @@ int display_options() {
            "2 - Get Master\n"
            "3 - Update Master\n"
            "4 - Delete Master\n"
-           "5 - UT-Master\n"
-           "6 - Insert Slave\n"
-           "7 - Get Slave\n"
-           "8 - Update Slave\n"
-           "9 - Delete Slave\n"
-           "10 - UT-Slave\n"
+           "5 - Calc Masters\n"
+           "6 - UT-Master\n"
+           "7 - Insert Slave\n"
+           "8 - Get Slave\n"
+           "9 - Update Slave\n"
+           "10 - Delete Slave\n"
+           "11 - UT-Slave\n"
     );
 
 }
@@ -207,27 +227,31 @@ int main() {
                 delete_master();
                 break;
             case 5:
-                ut_master();
+                calc_master();
                 break;
             case 6:
-                insert_slave();
+                ut_master();
                 break;
             case 7:
-                get_slave();
+                insert_slave();
                 break;
             case 8:
-                update_slave();
+                get_slave();
                 break;
             case 9:
-                delete_slave();
+                update_slave();
                 break;
             case 10:
+                delete_slave();
+                break;
+            case 11:
                 ut_slave();
                 break;
             default:
                 unsupported_operation();
                 break;
         }
+        cout << endl;
     } while(1);
 }
 
