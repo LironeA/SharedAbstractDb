@@ -8,18 +8,22 @@
 
 #define MASTER_DATA "M.fl"
 #define MASTER_IND "M.ind"
+#define OFFSET sizeof(struct offset)
 #define MASTER_SIZE sizeof(struct master)
 #define INDEX_SIZE sizeof(struct index)
 
 using namespace std;
 
-int last_index_master = 0;
+struct offset {
+    int id;
+};
 
 struct master {
     int id;
     string name;
 };
 
+int write_offset(offset* o);
 int get_m(master* m, int id);
 int update_m(master* m);
 int insert_m(master* m);
@@ -31,14 +35,33 @@ index get_index_master(int id);
 index get_next_index_master();
 int insert_index_m(index i);
 
+int write_offset(offset* o) {
+    FILE* database = fopen(MASTER_DATA, "ab+");
+
+    fseek(database, 0, SEEK_SET);
+    fwrite(o, OFFSET, 1, database);
+    fclose(database);
+}
+
+int get_offset() {
+    struct offset o{};
+    FILE* database = fopen(MASTER_DATA, "ab+");
+
+    fseek(database, 0, SEEK_SET);
+    fread(&o, OFFSET, 1, database);
+    cout << ftell(database) << endl;
+
+    return o.id;
+}
+
 int get_m(master* m, int id) {
     index i = get_index_master(id);
     if (i.id == -1 || i.exists == 1)
         return 1;
 
-    FILE* database = fopen(MASTER_DATA, "rb");
+    FILE* database = fopen(MASTER_DATA, "ab+");
 
-    fseek(database, i.id * i.record_size, SEEK_SET);
+    fseek(database, OFFSET + i.id * i.record_size, SEEK_SET);
     fread(m, MASTER_SIZE, 1, database);
     fclose(database);
 
@@ -46,7 +69,7 @@ int get_m(master* m, int id) {
 }
 
 int is_index_master(int id) {
-    if (id > last_index_master)
+    if (id > get_offset())
         return 1;
     FILE* index_collection = fopen(MASTER_IND, "rb");
     if (index_collection == nullptr)
@@ -91,9 +114,13 @@ int update_m(master* m) {
 
 index get_next_index_master() {
     struct index i{};
-    i.id = last_index_master++;
+    i.id = get_offset() + 1;
     i.record_size = MASTER_SIZE;
     i.exists = 0;
+
+    struct offset o{};
+    o.id = i.id + 1;
+    write_offset(&o);
 
     return i;
 };
@@ -107,7 +134,7 @@ int save_m(master* m, index i) {
     // Insert a data about a user in the .fl file
 
     m->id = i.id;
-    fseek(database, i.id * MASTER_SIZE, SEEK_SET);
+    fseek(database, OFFSET + i.id * MASTER_SIZE, SEEK_SET);
     fwrite(m, MASTER_SIZE, 1, database);
     fclose(database);
 
@@ -127,12 +154,12 @@ int insert_index_m(index i) {
 
 int calc_m() {
     FILE* index_collection = fopen(MASTER_IND, "rb");
-    if (index_collection == 0)
+    if (index_collection == nullptr)
         return -1;
 
     int counter = 0;
 
-    for (int i = 0; i < last_index_master; i++)
+    for (int i = 0; i < get_offset(); i++)
     {
         struct index ind{};
         fseek(index_collection, 0 * INDEX_SIZE, SEEK_SET);

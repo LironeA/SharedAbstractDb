@@ -9,7 +9,7 @@
 #define SLAVE_SIZE sizeof(struct slave)
 #define INDEX_SIZE sizeof(struct index)
 
-long last_index_slave = 0;
+int last_index_slave = 0;
 
 struct slave {
     int id;

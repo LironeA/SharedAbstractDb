@@ -77,7 +77,7 @@ int calc_master()
 {
     int result = calc_m();
     if(calc_m() == -1){
-        cout << "Error" << endl;
+        cout << "No master was inserted or error occurred." << endl;
         return 1;
     }
     cout << "Number of masters: " << result << endl;
@@ -207,6 +207,9 @@ int display_options() {
 
 
 int main() {
+    struct offset o {};
+    o.id = 0;
+    write_offset(&o);
     int command_id;
     do {
         display_options();
