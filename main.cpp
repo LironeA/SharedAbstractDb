@@ -86,7 +86,7 @@ int calc_master()
 }
 
 int ut_master(){
-    unsupported_operation();
+    ut_m();
 }
 
 int get_slave() {
@@ -122,8 +122,6 @@ int insert_slave(){
     if (result_code == 0) {
         cout << "Slave created."<< endl <<  "Name: " << s.name << endl << "Id: " << s.id << " Master: " << s.m_id <<  endl;
     }
-
-
 }
 
 
@@ -159,11 +157,11 @@ int delete_slave(){
     cin >> id;
     s.id = id;
 
-    /*if(delete_s(&s) == 1){
+    if(del_s(id) == 0){
         cout << "Slave deleted." << endl;
     } else{
         cout << "Error" << endl;
-    }*/
+    }
 }
 
 int calc_slave()
@@ -184,7 +182,7 @@ int calc_slave()
 }
 
 int ut_slave(){
-    unsupported_operation();
+    ut_s();
 }
 
 int display_options() {
@@ -205,12 +203,49 @@ int display_options() {
 
 }
 
+int init_db() {
+    FILE *fp;
+    if ((fp = fopen(MASTER_DATA, "r")) == NULL)
+    {
+        fclose(fp);
+        fp = fopen(MASTER_DATA, "wb+");
+        fwrite(0, 0, 1, fp);
+        fclose(fp);
+    }
+    if ((fp = fopen(MASTER_IND, "r")) == NULL)
+    {
+        fclose(fp);
+        fwrite(0, 0, 1, fp);
+        fp = fopen(MASTER_IND, "wb+");
+        fclose(fp);
+    }
+    if ((fp = fopen(SLAVE_DATA, "r")) == NULL)
+    {
+        fclose(fp);
+        fp = fopen(SLAVE_DATA, "wb+");
+        fwrite(0, 0, 1, fp);
+        fclose(fp);
+    }
+    if ((fp = fopen(SLAVE_IND, "r")) == NULL)
+    {
+        fclose(fp);
+        fwrite(0, 0, 1, fp);
+        fp = fopen(SLAVE_IND, "wb+");
+        fclose(fp);
+    }
+}
+
 
 int main() {
+    init_db();
     struct offset o {};
-    o.id = 0;
-    write_offset(&o);
+    o.id = -1;
+    if (get_offset_master() == -2)
+        write_offset_master(&o);
+    if (get_offset_slave() == -2)
+        write_offset_slave(&o);
     int command_id;
+
     do {
         display_options();
         cin >> command_id;
