@@ -95,6 +95,7 @@ int update_s(slave* s) {
     if(get_m(&m, s->m_id) == 1) return 2;
     if (get_index_master(s->m_id).exists == 1)
         return 2;
+    i.id = s->id;
     return save_s(s, i);
 }
 
