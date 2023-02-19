@@ -49,7 +49,7 @@ int update_master()
     cout << "Name:" << endl;
     cin >> m.name;
     if(update_m(&m) == 0) {
-        cout << "Master updated. Name: " << m.name << "Id: " << m.id << endl;
+        cout << "Master updated. Name: " << m.name << " Id: " << m.id << endl;
     }
     else {
         cout << "Error occurred during the update operation" << endl;
@@ -166,19 +166,12 @@ int delete_slave(){
 
 int calc_slave()
 {
-    struct slave s;
-    int id;
-    cout << "Id:" << endl;
-    cin >> id;
-    s.id = id;
-
-    unsupported_operation();
-
-    /*if(calk_s(&s) == 1){
-        cout << "Master deleted." << endl;
+    int slaves = calc_s();
+    if(slaves == -1){
+        cout << "Error occurred." << endl;
     } else{
-        cout << "Error" << endl;
-    }*/
+        cout << "Amount of slaves: " << slaves << endl;
+    }
 }
 
 int ut_slave(){
@@ -199,6 +192,7 @@ int display_options() {
            "9 - Update Slave\n"
            "10 - Delete Slave\n"
            "11 - UT-Slave\n"
+           "12 - Calc Slaves\n"
     );
 
 }
@@ -284,6 +278,9 @@ int main() {
                 break;
             case 11:
                 ut_slave();
+                break;
+            case 12:
+                calc_slave();
                 break;
             default:
                 unsupported_operation();

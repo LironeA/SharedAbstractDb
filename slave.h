@@ -31,6 +31,7 @@ index get_next_index_slave();
 index get_index_slave(int id);
 int is_index_slave(int id);
 int insert_index_s(index i);
+int replace_index_s(index i);
 int try_del_s_mid(index i, int id);
 
 int write_offset_slave(offset* o) {
@@ -39,6 +40,8 @@ int write_offset_slave(offset* o) {
     fseek(database, 0, SEEK_SET);
     fwrite(o, OFFSET, 1, database);
     fclose(database);
+
+    return 0;
 }
 
 int get_offset_slave() {
@@ -56,7 +59,7 @@ int get_offset_slave() {
 
 int get_s(slave* s, int id) {
     index i = get_index_slave(id);
-    if (i.id == -1 || i.exists == 1)
+    if (i.id == -1)
         return 1;
 
     FILE* database = fopen(SLAVE_DATA, "rb+");
@@ -65,21 +68,33 @@ int get_s(slave* s, int id) {
     fread(s, SLAVE_SIZE, 1, database);
     fclose(database);
 
+    if (i.exists == 1)
+        return 1;
+
     return 0;
 }
 
 int insert_s(slave* s) {
     if(is_index_master(s->m_id) == 1) return 2;
     index i = get_next_index_slave();
+    if (get_index_master(s->m_id).exists == 1)
+        return 2;
+
     return save_s(s, i);
 }
 
 int update_s(slave* s) {
     if(s->id > get_offset_slave() || is_index_slave(s->id) == 1)
         return 1;
-    struct index i;
-    struct master m;
+    index check = get_index_slave(s->id);
+    if (check.exists == 1)
+        return 1;
+
+    struct index i{};
+    struct master m{};
     if(get_m(&m, s->m_id) == 1) return 2;
+    if (get_index_master(s->m_id).exists == 1)
+        return 2;
     return save_s(s, i);
 }
 
@@ -111,7 +126,7 @@ int del_s(int id)
         return 1;
 
     i.exists = 1;
-    if (insert_index_s(i) == 1)
+    if (replace_index_s(i) == 1)
         return 1;
 
     return 0;
@@ -126,7 +141,7 @@ int del_m(int id) {
         return 1;
 
     i.exists = 1;
-    if (insert_index_m(i) == 1)
+    if (replace_index_m(i) == 1)
         return 1;
 
     return del_all_s_mid(id);
@@ -160,6 +175,16 @@ int try_del_s_mid(index i, int id)
 
 int insert_index_s(index i) {
     FILE* index_collection = fopen(SLAVE_IND, "a+b");
+    if (index_collection == nullptr)
+        return 1;
+
+    fseek(index_collection, i.id * INDEX_SIZE, SEEK_SET);
+    fwrite(&i, INDEX_SIZE, 1, index_collection);
+    fclose(index_collection);
+}
+
+int replace_index_s(index i) {
+    FILE* index_collection = fopen(SLAVE_IND, "rb+");
     if (index_collection == nullptr)
         return 1;
 
@@ -214,9 +239,30 @@ int is_index_slave(int id) {
     return 0;
 }
 
+int calc_s() {
+    FILE* index_collection = fopen(SLAVE_IND, "rb");
+    if (index_collection == nullptr)
+        return -1;
+
+    int counter = 0;
+
+    int amount = get_offset_slave();
+    for (int i = 0; i <= amount; i++)
+    {
+        struct index ind{};
+        fseek(index_collection, 0 * INDEX_SIZE, SEEK_SET);
+        fread(&ind, INDEX_SIZE, 1, index_collection);
+        fclose(index_collection);
+        if (ind.exists == 0)
+            counter++;
+    }
+
+    return counter;
+}
+
 int ut_s() {
     int records_amount = get_offset_slave();
-    cout << "Amount of records (slaves), which were added to the database" << endl;
+    cout << "Indexes and records (slaves), which were added to the database" << endl;
     FILE* index_collection = fopen(SLAVE_IND, "rb+");
     for (int i = 0; i <= records_amount; i++)
     {

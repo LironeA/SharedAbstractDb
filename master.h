@@ -27,17 +27,18 @@ int insert_m(master* m);
 int calc_m();
 int ut_m();
 int save_m(master* m, index i);
-
 index get_index_master(int id);
 index get_next_index_master();
 int insert_index_m(index i);
-
+int replace_index_m(index i);
 int write_offset_master(offset* o) {
     FILE* database = fopen(MASTER_OFFSET, "w+");
 
     fseek(database, 0, SEEK_SET);
     fwrite(o, OFFSET, 1, database);
     fclose(database);
+
+    return 0;
 }
 
 int get_offset_master() {
@@ -54,7 +55,7 @@ int get_offset_master() {
 
 int get_m(master* m, int id) {
     index i = get_index_master(id);
-    if (i.id == -1 || i.exists == 1)
+    if (i.id == -1)
         return 1;
 
     FILE* database = fopen(MASTER_DATA, "rb+");
@@ -62,6 +63,9 @@ int get_m(master* m, int id) {
     fseek(database, i.id * i.record_size, SEEK_SET);
     fread(m, MASTER_SIZE, 1, database);
     fclose(database);
+
+    if (i.exists == 1)
+        return 1;
 
     return 0;
 }
@@ -107,9 +111,11 @@ int update_m(master* m) {
     struct index i{};
     if (m->id > get_offset_master() || is_index_master(i.id) == 1)
         return 1;
+    i = get_index_master(m->id);
+    if (i.exists == 1)
+        return 1;
     return save_m(m, i);
 }
-
 
 index get_next_index_master() {
     struct index i{};
@@ -122,7 +128,7 @@ index get_next_index_master() {
     write_offset_master(&o);
 
     return i;
-};
+}
 
 int save_m(master* m, index i) {
     FILE* database = fopen(MASTER_DATA, "rb+");
@@ -143,6 +149,16 @@ int save_m(master* m, index i) {
 
 int insert_index_m(index i) {
     FILE* index_collection = fopen(MASTER_IND, "a+b");
+    if (index_collection == nullptr)
+        return 1;
+
+    fseek(index_collection, i.id * INDEX_SIZE, SEEK_SET);
+    fwrite(&i, INDEX_SIZE, 1, index_collection);
+    fclose(index_collection);
+}
+
+int replace_index_m(index i) {
+    FILE* index_collection = fopen(MASTER_IND, "rb+");
     if (index_collection == nullptr)
         return 1;
 
@@ -174,7 +190,7 @@ int calc_m() {
 
 int ut_m() {
     int records_amount = get_offset_master();
-    cout << "Amount of records (masters), which were added to the database" << endl;
+    cout << "Indexes and records (masters), which were added to the database:" << endl;
     FILE* index_collection = fopen(MASTER_IND, "rb+");
     for (int i = 0; i <= records_amount; i++)
     {
